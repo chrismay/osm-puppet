@@ -1,4 +1,6 @@
 $mapnik_user="vagrant"
+$mapnik_home_dir="/home/vagrant"
+$osm2pgsql_install_dir="${mapnik_home_dir}/bin/osm2pgsql"
 
 class packages{
 package{[subversion,autoconf,screen,htop]: ensure=>present}
@@ -28,6 +30,14 @@ exec{"/home/vagrant/bin/osm2pgsql/autogen.sh && /home/vagrant/bin/osm2pgsql/conf
     alias=>"build-osm2pgsql"
 }
 }
+class mapnik-build{
+    exec{"/usr/bin/svn co  http://svn.openstreetmap.org/applications/rendering/mapnik":
+        cwd=>"/home/vagrant/bin",
+        creates=>"/home/vagrant/bin/mapnik",
+        alias=>"svn-get-mapnik-tools"
+    }
+    file{"/home/vagrant/bin/mapnik/world_boundaries": ensure=>"/vagrant/osm_data/world_boundaries"}
+}
 class postgres{
     service{"postgresql-8.4": ensure=>running}
     file{"/etc/postgresql/8.4/main/postgresql.conf": source=>"/vagrant/postgresql.conf",
@@ -39,7 +49,7 @@ class postgres{
         logoutput=>true,
         alias=>"create-postgis-users"
     }
-    exec{"/usr/bin/psql -f /usr/share/postgresql/8.4/contrib/postgis.sql -d gis && touch /var/lib/postgresql/puppet_enabled_gis":
+    exec{"/usr/bin/psql -f /usr/share/postgresql/8.4/contrib/postgis-1.5/postgis.sql -d gis && touch /var/lib/postgresql/puppet_enabled_gis":
         creates=>"/var/lib/postgresql/puppet_enabled_gis",
         user=>postgres,
         logoutput=>true,
@@ -74,7 +84,8 @@ exec{"/home/vagrant/bin/osm2pgsql/osm2pgsql -S default.style --slim -d gis -C 20
     user=>postgres,
     logoutput=>true,
     creates=>"/var/lib/postgresql/puppet_imported_nec",
-    require=>[Exec["enable-osm-postgis"],Exec["build-osm2pgsql"]]
+    require=>[Exec["enable-osm-postgis"],Exec["build-osm2pgsql"]],
+    cwd=>"${osm2pgsql_install_dir}"
 }
 }
 
@@ -92,3 +103,4 @@ include packages
 include osm-build
 include postgres
 include import-osm
+include mapnik-build
