@@ -7,7 +7,11 @@ $config_dir="/data"
 class packages{
 package{[subversion,autoconf,screen,htop]: ensure=>present}
 
-file{["${mapnik_home_dir}/src","${mapnik_home_dir}/bin","${mapnik_home_dir}/planet"]: ensure=>directory}
+file{["${mapnik_home_dir}/src","${mapnik_home_dir}/bin","${mapnik_home_dir}/planet"]: 
+
+  ensure=>directory,
+  owner=>"${mapnik_user}"
+}
 
 
 package{["postgresql-8.4-postgis", "postgresql-contrib-8.4","postgresql-server-dev-8.4",
