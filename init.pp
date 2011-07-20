@@ -27,14 +27,18 @@ exec{"/usr/bin/svn co http://svn.openstreetmap.org/applications/utils/export/osm
     creates=>"${mapnik_home_dir}/bin/osm2pgsql",
     alias=>"svn-get-osm2pgsql"
 }
+package{"osm2pgsql": ensure=>present}
 
-exec{"${mapnik_home_dir}/bin/osm2pgsql/autogen.sh && ${mapnik_home_dir}/bin/osm2pgsql/configure && /usr/bin/make":
-    cwd=>"${mapnik_home_dir}/bin/osm2pgsql",
-    logoutput=>true,
-    require=>Exec["svn-get-osm2pgsql"],
-    creates=>"${mapnik_home_dir}/bin/osm2pgsql/osm2pgsql",
-    alias=>"build-osm2pgsql"
-}
+#Don't bother to build any more; just use the packaged version.
+#However, we still do the checkout so we can get the SQL scripts (see below)
+
+#exec{"${mapnik_home_dir}/bin/osm2pgsql/autogen.sh && ${mapnik_home_dir}/bin/osm2pgsql/configure && /usr/bin/make":
+#    cwd=>"${mapnik_home_dir}/bin/osm2pgsql",
+#    logoutput=>true,
+#    require=>Exec["svn-get-osm2pgsql"],
+#    creates=>"${mapnik_home_dir}/bin/osm2pgsql/osm2pgsql",
+#    alias=>"build-osm2pgsql"
+#}
 }
 class mapnik-build{
     exec{"/usr/bin/svn co  http://svn.openstreetmap.org/applications/rendering/mapnik":
@@ -94,7 +98,7 @@ exec{"${mapnik_home_dir}/bin/osm2pgsql/osm2pgsql -S default.style --slim -d gis 
     user=>postgres,
     logoutput=>true,
     creates=>"/var/lib/postgresql/puppet_imported_nec",
-    require=>[Exec["enable-osm-postgis"],Exec["build-osm2pgsql"]],
+    require=>[Exec["enable-osm-postgis"],Package["osm2pgsql"]],
     cwd=>"${osm2pgsql_install_dir}"
 }
 }
