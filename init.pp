@@ -49,9 +49,9 @@ class mapnik-build{
     }
 }
 class postgres{
-    service{"postgresql-8.4": ensure=>running}
+    service{"postgresql": ensure=>running}
     file{"/etc/postgresql/8.4/main/postgresql.conf": source=>"${shared_data_dir}/postgresql.conf",
-       notify=>Service["postgresql-8.4"]
+       notify=>Service["postgresql"]
     }
     exec{"/usr/bin/createuser -s ${mapnik_user} && /usr/bin/createdb -E UTF8 -O ${mapnik_user} --template template0 gis && /usr/bin/createlang plpgsql gis && touch /var/lib/postgresql/puppet_made_users":
         creates=>"/var/lib/postgresql/puppet_made_users",
