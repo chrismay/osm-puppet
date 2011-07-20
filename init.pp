@@ -53,7 +53,7 @@ class postgres{
     file{"/etc/postgresql/8.4/main/postgresql.conf": source=>"${shared_data_dir}/postgresql.conf",
        notify=>Service["postgresql-8.4"]
     }
-    exec{"/usr/bin/createuser -s ${mapnik_home_dir} && /usr/bin/createdb -E UTF8 -O ${mapnik_home_dir} --template template0 gis && /usr/bin/createlang plpgsql gis && touch /var/lib/postgresql/puppet_made_users":
+    exec{"/usr/bin/createuser -s ${mapnik_user} && /usr/bin/createdb -E UTF8 -O ${mapnik_user} --template template0 gis && /usr/bin/createlang plpgsql gis && touch /var/lib/postgresql/puppet_made_users":
         creates=>"/var/lib/postgresql/puppet_made_users",
         user=>postgres,
         logoutput=>true,
@@ -66,7 +66,7 @@ class postgres{
         alias=>"enable-postgis",
         require=>Exec["create-postgis-users"]
     }
-    exec{"/bin/echo \"ALTER TABLE geometry_columns OWNER TO ${mapnik_home_dir}; ALTER TABLE spatial_ref_sys OWNER TO ${mapnik_home_dir};\" | /usr/bin/psql -d gis && touch /var/lib/postgresql/puppet_fixed_owners":
+    exec{"/bin/echo \"ALTER TABLE geometry_columns OWNER TO ${mapnik_user}; ALTER TABLE spatial_ref_sys OWNER TO ${mapnik_user};\" | /usr/bin/psql -d gis && touch /var/lib/postgresql/puppet_fixed_owners":
         creates=>"/var/lib/postgresql/puppet_fixed_owners",
         user=>postgres,
         logoutput=>true,
