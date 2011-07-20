@@ -43,7 +43,10 @@ class mapnik-build{
         user=>"${mapnik_user}",
         alias=>"svn-get-mapnik-tools"
     }
-    file{"${mapnik_home_dir}/bin/mapnik/world_boundaries": ensure=>"${shared_data_dir}/osm_data/world_boundaries"}
+    file{"${mapnik_home_dir}/bin/mapnik/world_boundaries": 
+      ensure=>"${shared_data_dir}/osm_data/world_boundaries"
+      require=>Exec["svn-get-mapnik-tools"]
+    }
 }
 class postgres{
     service{"postgresql-8.4": ensure=>running}
