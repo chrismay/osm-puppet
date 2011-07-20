@@ -23,4 +23,6 @@ file{["/var/hudson","/var/hudson/.ssh"]: ensure=>directory, owner=>hudson}
     target=>"/var/hudson/.ssh/authorized_keys",
     require=>File["/var/hudson/.ssh"]
   }
+  package{[ant,"openjdk-6-jdk"]:ensure=>present}
+}
 include hudson
