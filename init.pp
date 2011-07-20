@@ -44,7 +44,7 @@ class mapnik-build{
         alias=>"svn-get-mapnik-tools"
     }
     file{"${mapnik_home_dir}/bin/mapnik/world_boundaries": 
-      ensure=>"${shared_data_dir}/osm_data/world_boundaries"
+      ensure=>"${shared_data_dir}/osm_data/world_boundaries",
       require=>Exec["svn-get-mapnik-tools"]
     }
 }
