@@ -6,6 +6,18 @@ file{["/home/vagrant/src","/home/vagrant/bin","/home/vagrant/planet"]: ensure=>d
 
 package{["postgresql-8.4-postgis", "postgresql-contrib-8.4","postgresql-server-dev-8.4",
 "build-essential","libxml2-dev","libtool","libgeos-dev", "libpq-dev", "libbz2-dev", "proj"]: ensure=>present}
+
+package{["libltdl3-dev", "libpng12-dev", "libtiff4-dev" ,"libicu-dev",
+"libboost-python1.40-dev" ,"python-cairo-dev python-nose",
+"libboost1.40-dev" ,"libboost-filesystem1.40-dev",
+"libboost-iostreams1.40-dev" ,"libboost-regex1.40-dev", "libboost-thread1.40-dev",
+"libboost-program-options1.40-dev" ,"libboost-python1.40-dev",
+ "libfreetype6-dev" ,"libcairo2-dev", "libcairomm-1.0-dev",
+ "libgeotiff-dev" ,"libtiff4", "libtiff4-dev", "libtiffxx0c2",
+ "libsigc++-dev" ,"libsigc++0c2", "libsigx-2.0-2", "libsigx-2.0-dev",
+ "libgdal1-dev" ,"python-gdal",
+ "imagemagick" ,"ttf-dejavu"
+]:ensure=>installed}
 }
 
 class osm-build{
@@ -19,7 +31,8 @@ exec{"/home/vagrant/bin/osm2pgsql/autogen.sh && /home/vagrant/bin/osm2pgsql/conf
     cwd=>"/home/vagrant/bin/osm2pgsql",
     logoutput=>true,
     require=>Exec["svn-get-osm2pgsql"],
-    creates=>"/home/vagrant/bin/osm2pgsql/osm2pgsql"
+    creates=>"/home/vagrant/bin/osm2pgsql/osm2pgsql",
+    alias=>"build=osm2pgsql"
 }
 }
 class postgres{
@@ -58,11 +71,19 @@ class postgres{
         creates=>"/var/lib/postgresql/puppet_enabled_srid",
         user=>postgres,
         logoutput=>true,
-        require=>Exec["enable-postgis"]
+        require=>Exec["enable-postgis"],
+        alias=>Exec["enable-osm-postgis"]
     }
+}
 
-
-    
+class import-osm{
+exec{"/home/vagrant/bin/osm2pgsql/osm2pgsql -S default.style --slim -d gis -C 2048 /vagrant/nec-gw-gf-2011.osm.bz2 && touch /var/lib/postgresql/puppet_imported_nec":
+    user=>postgres,
+    logoutput=>true,
+    logoutput=>true,
+    creates=>"/var/lib/postgresql/puppet_imported_nec",
+    require=>[Exec["enable-osm-postgis"],Exec["build-osm2pgsql"]]
+}
 }
 
 
@@ -71,9 +92,11 @@ class startup{
 }
 stage { "first": before => Stage[packages] }
 stage { "packages": before=>Stage[main]}
+
 class {"startup": stage=>first}
 class {"packages": stage=>packages}
 include startup
 include packages
 include osm-build
 include postgres
+include import-osm
